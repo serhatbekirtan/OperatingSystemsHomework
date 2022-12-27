@@ -4,10 +4,17 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Main {
+public class c20170808047 {
     public static void main(String[] args) throws Exception {
+
+        String fileName = args[0];
+
+        // Get the path to the file that is given as input
+        String path = c20170808047.class.getResource
+        (fileName).getPath();
+
         // Open the input file
-        BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\bey-s\\IdeaProjects\\c20170808047\\src\\jobs.txt"));
+        BufferedReader reader = new BufferedReader(new FileReader(path));
 
         // Create a list to hold the lines from the input file
         List<String> lines = new ArrayList<>();
@@ -59,59 +66,18 @@ public class Main {
             }
         }
 
-        // Print the data
-//        for (Integer processId : data.keySet()) {
-//            System.out.println("Process ID: " + processId);
-//            System.out.println("CPU Bursts: " + data.get(processId).getCpuBursts());
-//            System.out.println("I/O Bursts: " + data.get(processId).getIoBursts());
-//            System.out.println();
-//        }
-
-        //data.get(346).returnTime = data.get(346).getCpuBursts().get(0);
-        //System.out.println("Return time of the process " + data.keySet().toArray()[0] + "'s first cpu burst is " + data.get(346).returnTime);
-
-        //System.out.println("Process " + data.keySet().toArray()[0] + "'s return time will be " + data.get(346).getNthBurstsAddition(0));
-
-//        // returns processID's
-//        System.out.println("\n" + data.keySet());
-//
-//        // returns the first processID in the list
-//        System.out.println("\n" + data.keySet().toArray()[0]);
-//
-//        // returns the first processes first CPU burst
-//        System.out.println("\n" + data.get(346).getCpuBursts().get(0));
-//
-//        // returns the first processes first I/O burst
-//        System.out.println("\n" + data.get(346).getIoBursts().get(0));
-//
-//        // returns cpuBursts for processID 346
-//        System.out.println(data.get(346).getCpuBursts());
-//        System.out.println(data.get(346).getIoBursts());
-//
-//        // To add the first processes first CPU burst and I/O burst.
-//        System.out.println(data.get(346).getCpuBursts().get(0) + data.get(346).getIoBursts().get(0));
-//
-//        Queue<Integer> queue = new LinkedList<>();
-//        int removedCpuBurst = data.get(346).getCpuBursts().remove(0);
-//        int removedCpuBurst2 = data.get(2547).getCpuBursts().remove(0);
-//        int removedCpuBurst3 = data.get(49).getCpuBursts().remove(0);
-//        queue.add(removedCpuBurst);
-//        System.out.println(queue);
-//        queue.add(removedCpuBurst2);
-//        queue.add(removedCpuBurst3);
-//        System.out.println(queue);
-//        queue.remove(15);
-//        System.out.println(queue);
-
-//
-//        // Print data size
-//        System.out.println(data.size());
+        // Sort the data LinkedHashMap by process ID
+        LinkedHashMap<Integer, Bursts> sortedData = new LinkedHashMap<>();
+        data.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEachOrdered(x -> sortedData.put(x.getKey(), x.getValue()));
 
         System.out.println("\nTable:");
         System.out.println("Current " + "\t\t\t" + " PID " + "\t\t\t" + " Tuple " + "\t\t\t" + " Return ");
-        runProcesses(data);
+        runProcesses(sortedData);
     }
 
+    // Method to run the processes in the FCFS algorithm with I/O bursts
     public static void runProcesses(LinkedHashMap<Integer, Bursts> data) {
 
         // Initialize variables to keep track of statistics
@@ -119,8 +85,6 @@ public class Main {
         double totalCpuBurstTime = 0;
         int idleCount = 0;
         int numOfProcesses = data.size();
-
-        // Initialize a queue of ready processes
 
         // Initialize a queue of processes that are currently running
         Queue<Integer> runningQueue = new LinkedList<>();
@@ -136,23 +100,24 @@ public class Main {
 
         int smallestReturnTime = Integer.MAX_VALUE;
 
-        // Keep running until the data LinkedHashMap is empty
+        // Keep running until all processes have terminated
         while (data.size() != terminatedList.size()) {
 
-            // If there are no processes running and the ready queue is not empty, run the next process
+            // Transfer processes from the ready queue to the running queue
             while (!readyQueue.isEmpty()){
-                // Set the ready process's return time to its first CPU burst length plus first I/O burst length
+                // If the process is going to run its last Bursts, remove it from the ready queue and add it to the terminated list
                 if (data.get(readyQueue.peek()).getIoBursts().get(0) == -1){
+                    // Set the return time of the process
                     data.get(readyQueue.peek()).returnTime = current + data.get(readyQueue.peek()).getCpuBursts().get(0);
                     totalTerminateTime += data.get(readyQueue.peek()).returnTime;
-                    //System.out.println("Process " + readyQueue.peek() + " terminated at time " + data.get(readyQueue.peek()).returnTime);
-                    //System.out.println("totalTerminateTime: " + totalTerminateTime);
 
                     // Print the current time, process ID, tuple, and return time
-                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
+                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0)
+                            + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
 
                     // Add running process's cpu burst length to the current time
                     current += data.get(readyQueue.peek()).getCpuBursts().get(0);
+                    // Add the process's cpu burst length to the total cpu burst time
                     totalCpuBurstTime += data.get(readyQueue.peek()).getCpuBursts().get(0);
 
                     // Remove the running process's first CPU burst length and I/O burst length from the list
@@ -169,11 +134,9 @@ public class Main {
 
                 }
 
-                // Add running process's cpu burst length to the current time
                 current += data.get(readyQueue.peek()).getCpuBursts().get(0);
                 totalCpuBurstTime += data.get(readyQueue.peek()).getCpuBursts().get(0);
 
-                // Remove the running process's first CPU burst length and I/O burst length from the list
                 data.get(readyQueue.peek()).getCpuBursts().remove(0);
                 data.get(readyQueue.peek()).getIoBursts().remove(0);
 
@@ -204,13 +167,16 @@ public class Main {
                 // Increase the idle count by 1
                 idleCount++;
 
+                // Print the current time, IDLE process, tuple, and return time
                 System.out.println(current + "\t\t\t\t\t  " + "IDLE" + "\t\t\t" + "      " + (smallestReturnTime - current) + ",0" + "            " + smallestReturnTime);
                 // Set the current time to the smallest return time
                 current = smallestReturnTime;
             }
+            // Reset the smallest return time to the max value
             smallestReturnTime = Integer.MAX_VALUE;
         }
 
+        // Print the statistics
         System.out.println("\nAverage turnaround time: " + (totalTerminateTime / numOfProcesses));
         System.out.println("Average waiting time: " + ((totalTerminateTime - totalCpuBurstTime) / numOfProcesses));
         System.out.println("Number of times that the IDLE process runs: " + idleCount);
@@ -218,6 +184,7 @@ public class Main {
     }
 }
 
+// Class to hold the CPU and I/O burst lengths and the return time of a process
 class Bursts {
     public int returnTime = 0;
     private List<Integer> cpuBursts;
@@ -245,90 +212,4 @@ class Bursts {
         return this.ioBursts;
     }
 }
-//    public static void runProcesses(LinkedHashMap<Integer, Bursts> data) {
-//        // Initialize variables to keep track of statistics
-//        int totalTurnaroundTime = 0;
-//        int totalWaitingTime = 0;
-//        int idleCount = 0;
-//        int numOfProcesses = data.size();
-//
-//        // Initialize a list of ready processes
-//        List<Integer> readyProcesses = new ArrayList<>();
-//
-//        // Initialize the current time to 0
-//        int current = 0;
-//
-//        // Initialize the I/O device queue
-//        Queue<Integer> ioQueue = new LinkedList<>();
-//
-//        // Initialize the IDLE process
-//        int idleProcess = 0;
-//
-//        // Keep running until all processes have completed
-//        while (!data.isEmpty()) {
-//            // Add all processes that have arrived at the current time to the list of ready processes
-//            for (int processId : data.keySet()) {
-//                Bursts bursts = data.get(processId);
-//                if (bursts.getCpuBursts().get(0) == current) {
-//                    readyProcesses.add(processId);
-//                }
-//            }
-//
-//            // Print the ready processes
-//            System.out.println("Ready Processes: " + readyProcesses.get(0).toString());
-//
-//            // Check if the readyProcesses list is empty
-//            if (readyProcesses.isEmpty()) {
-//                // If the list is empty, execute the IDLE process and increment the idle count
-//                readyProcesses.add(idleProcess);
-//                idleCount++;
-//            } else {
-//                // Select the next process to run based on the FCFS algorithm (first process in the list of ready processes)
-//                int currentProcess = readyProcesses.remove(0);
-//
-//                // Increase the current by the length of the current CPU burst
-//                int currentCpuBurst = data.get(currentProcess).getCpuBursts().remove(0);
-//                current += currentCpuBurst;
-//
-//                // If the current I/O burst is not -1, add the current process to the I/O device queue and set the process state to WAITING
-//                int currentIoBurst = data.get(currentProcess).getIoBursts().remove(0);
-//                if (currentIoBurst != -1) {
-//                    ioQueue.add(currentProcess);
-//                }
-//
-//                // If the I/O device queue is not empty, remove the next process from the queue and set its state to READY
-//                if (!ioQueue.isEmpty()) {
-//                    int nextProcess = ioQueue.remove();
-//                    readyProcesses.add(nextProcess);
-//                } else if (readyProcesses.isEmpty()) {
-//                    // If the I/O device queue is empty and there are no other processes ready to run, execute the IDLE process and increment the idle count
-//                    readyProcesses.add(idleProcess);
-//                    idleCount++;
-//                }
-//
-//                // If the current process has completed all of its CPU bursts and I/O bursts, set its state to TERMINATED and calculate its turnaround current,
-//                // waiting current.
-//                if (data.get(currentProcess).getCpuBursts().isEmpty() && data.get(currentProcess).getIoBursts().isEmpty()) {
-//                    data.remove(currentProcess);
-//
-//                    int turnaroundTime = current - currentCpuBurst;
-//                    int waitingTime = turnaroundTime - currentCpuBurst;
-//                    int responseTime = waitingTime;
-//
-//                    totalTurnaroundTime += turnaroundTime;
-//                    totalWaitingTime += waitingTime;
-//                }
-//            }
-//        }
-//
-//        // Calculate the average turnaround current, average waiting current, and number of times the IDLE process was executed
-//        double avgTurnaroundTime = (double) totalTurnaroundTime / numOfProcesses;
-//        double avgWaitingTime = (double) totalWaitingTime / numOfProcesses;
-//
-//        // Print the results
-//        System.out.println("Average turnaround current: " + avgTurnaroundTime);
-//        System.out.println("Average waiting current: " + avgWaitingTime);
-//        System.out.println("Number of times IDLE was executed: " + idleCount);
-//        System.out.println("HALT");
-//    }
 
