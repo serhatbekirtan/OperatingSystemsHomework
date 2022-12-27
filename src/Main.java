@@ -60,12 +60,17 @@ public class Main {
         }
 
         // Print the data
-        for (Integer processId : data.keySet()) {
-            System.out.println("Process ID: " + processId);
-            System.out.println("CPU Bursts: " + data.get(processId).getCpuBursts());
-            System.out.println("I/O Bursts: " + data.get(processId).getIoBursts());
-            System.out.println();
-        }
+//        for (Integer processId : data.keySet()) {
+//            System.out.println("Process ID: " + processId);
+//            System.out.println("CPU Bursts: " + data.get(processId).getCpuBursts());
+//            System.out.println("I/O Bursts: " + data.get(processId).getIoBursts());
+//            System.out.println();
+//        }
+
+        //data.get(346).returnTime = data.get(346).getCpuBursts().get(0);
+        //System.out.println("Return time of the process " + data.keySet().toArray()[0] + "'s first cpu burst is " + data.get(346).returnTime);
+
+        //System.out.println("Process " + data.keySet().toArray()[0] + "'s return time will be " + data.get(346).getNthBurstsAddition(0));
 
 //        // returns processID's
 //        System.out.println("\n" + data.keySet());
@@ -102,77 +107,119 @@ public class Main {
 //        // Print data size
 //        System.out.println(data.size());
 
-        //runProcesses(data);
+        System.out.println("\nTable:");
+        System.out.println("Current " + "\t\t\t" + " PID " + "\t\t\t" + " Tuple " + "\t\t\t" + " Return ");
+        runProcesses(data);
     }
 
     public static void runProcesses(LinkedHashMap<Integer, Bursts> data) {
+
         // Initialize variables to keep track of statistics
-        int totalTurnaroundTime = 0;
-        int totalWaitingTime = 0;
+        double totalTerminateTime = 0;
+        double totalCpuBurstTime = 0;
         int idleCount = 0;
         int numOfProcesses = data.size();
 
-        // Initialize a list of ready processes
-        List<Integer> readyProcesses = new ArrayList<>();
+        // Initialize a queue of ready processes
+
+        // Initialize a queue of processes that are currently running
+        Queue<Integer> runningQueue = new LinkedList<>();
+
+        // Initialize a list of processes that have terminated
+        List<Integer> terminatedList = new ArrayList<>();
 
         // Initialize the current time to 0
         int current = 0;
 
-        // Initialize the I/O device queue
-        Queue<Integer> ioQueue = new LinkedList<>();
+        // Add all processes to the ready queue at time 0
+        Queue<Integer> readyQueue = new LinkedList<>(data.keySet());
 
-        // Initialize the IDLE process
-        int idleProcess = 0;
+        int smallestReturnTime = Integer.MAX_VALUE;
 
         // Keep running until the data LinkedHashMap is empty
-        while (!data.isEmpty()) {
-            // Add any processes that have arrived to the ready processes list
-            for (Integer processId : data.keySet()) {
-                if (data.get(processId).getArrivalTime() == current) {
-                    readyProcesses.add(processId);
-                }
-            }
+        while (data.size() != terminatedList.size()) {
 
-            // If there are no ready processes, add the IDLE process to the ready processes list
-            if (readyProcesses.isEmpty()) {
-                readyProcesses.add(idleProcess);
-            }
+            // If there are no processes running and the ready queue is not empty, run the next process
+            while (!readyQueue.isEmpty()){
+                // Set the ready process's return time to its first CPU burst length plus first I/O burst length
+                if (data.get(readyQueue.peek()).getIoBursts().get(0) == -1){
+                    data.get(readyQueue.peek()).returnTime = current + data.get(readyQueue.peek()).getCpuBursts().get(0);
+                    totalTerminateTime += data.get(readyQueue.peek()).returnTime;
+                    //System.out.println("Process " + readyQueue.peek() + " terminated at time " + data.get(readyQueue.peek()).returnTime);
+                    //System.out.println("totalTerminateTime: " + totalTerminateTime);
 
-            // Get the next process from the ready processes list
-            int processId = readyProcesses.remove(0);
+                    // Print the current time, process ID, tuple, and return time
+                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
 
-            // If the process is the IDLE process, increment the idle count
-            if (processId == idleProcess) {
-                idleCount++;
-            } else {
-                // Get the next CPU burst for the process
-                int cpuBurst = data.get(processId).getCpuBursts().remove(0);
+                    // Add running process's cpu burst length to the current time
+                    current += data.get(readyQueue.peek()).getCpuBursts().get(0);
+                    totalCpuBurstTime += data.get(readyQueue.peek()).getCpuBursts().get(0);
 
-                // Get the next I/O burst for the process
-                int ioBurst = data.get(processId).getIoBursts().remove(0);
+                    // Remove the running process's first CPU burst length and I/O burst length from the list
+                    data.get(readyQueue.peek()).getCpuBursts().remove(0);
+                    data.get(readyQueue.peek()).getIoBursts().remove(0);
 
-                // Add the I/O burst to the I/O device queue
-                ioQueue.add(ioBurst);
-
-                // Increment the current time by the CPU burst
-                current += cpuBurst;
-
-                // If the process has no more CPU bursts, remove it from the data LinkedHashMap
-                if (data.get(processId).getCpuBursts().isEmpty()) {
-                    data.remove(processId);
+                    terminatedList.add(readyQueue.remove());
+                    continue;
                 } else {
-                    // Add the process back to the ready processes list
-                    readyProcesses.add(processId);
+                    data.get(readyQueue.peek()).returnTime = current + data.get(readyQueue.peek()).getNthBurstsAddition(0);
+
+                    // Print the current time, process ID, tuple, and return time
+                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
+
+                }
+
+                // Add running process's cpu burst length to the current time
+                current += data.get(readyQueue.peek()).getCpuBursts().get(0);
+                totalCpuBurstTime += data.get(readyQueue.peek()).getCpuBursts().get(0);
+
+                // Remove the running process's first CPU burst length and I/O burst length from the list
+                data.get(readyQueue.peek()).getCpuBursts().remove(0);
+                data.get(readyQueue.peek()).getIoBursts().remove(0);
+
+                runningQueue.add(readyQueue.remove());
+            }
+
+            // If the return time of the processes in the running queue is less than or equal to the current time,
+            // add them to the ready queue and remove them from the running queue
+            Iterator<Integer> iterator = runningQueue.iterator();
+            while (iterator.hasNext()) {
+                Integer processId = iterator.next();
+                if (data.get(processId).returnTime <= current) {
+                    readyQueue.add(processId);
+                    iterator.remove();
                 }
             }
 
-            // Increment the current time by the I/O burst
-            current += ioQueue.remove();
+            // If the running queue is not empty and the ready queue is empty
+            if(!runningQueue.isEmpty() && readyQueue.isEmpty()) {
+
+                // Find the process with the smallest return time inside the running queue
+                for (Integer processId : runningQueue) {
+                    if (data.get(processId).returnTime < smallestReturnTime) {
+                        // And set the smallest return time to that process's return time
+                        smallestReturnTime = data.get(processId).returnTime;
+                    }
+                }
+                // Increase the idle count by 1
+                idleCount++;
+
+                System.out.println(current + "\t\t\t\t\t  " + "IDLE" + "\t\t\t" + "      " + (smallestReturnTime - current) + ",0" + "            " + smallestReturnTime);
+                // Set the current time to the smallest return time
+                current = smallestReturnTime;
+            }
+            smallestReturnTime = Integer.MAX_VALUE;
         }
+
+        System.out.println("\nAverage turnaround time: " + (totalTerminateTime / numOfProcesses));
+        System.out.println("Average waiting time: " + ((totalTerminateTime - totalCpuBurstTime) / numOfProcesses));
+        System.out.println("Number of times that the IDLE process runs: " + idleCount);
+        System.out.println("HALT");
     }
 }
 
 class Bursts {
+    public int returnTime = 0;
     private List<Integer> cpuBursts;
     private List<Integer> ioBursts;
 
@@ -198,26 +245,6 @@ class Bursts {
         return this.ioBursts;
     }
 }
-
-class Process{
-    private int processId;
-    private int arrivalTime;
-    private Bursts bursts;
-
-    public Process(int processId, int arrivalTime, int cpuBurst, int ioBurst) {
-        this.processId = processId;
-        this.arrivalTime = arrivalTime;
-    }
-
-    public int getProcessId() {
-        return processId;
-    }
-
-    public int getArrivalTime() {
-        return arrivalTime;
-    }
-}
-
 //    public static void runProcesses(LinkedHashMap<Integer, Bursts> data) {
 //        // Initialize variables to keep track of statistics
 //        int totalTurnaroundTime = 0;
