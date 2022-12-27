@@ -1,3 +1,9 @@
+/**
+ * @author $Serhat Bekir TAN
+ *
+ * $Student ID: 20170808047
+ */
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.*;
