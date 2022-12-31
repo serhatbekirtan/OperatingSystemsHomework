@@ -6,6 +6,7 @@
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +14,18 @@ import java.util.regex.Pattern;
 public class c20170808047 {
     public static void main(String[] args) throws Exception {
 
-        String fileName = args[0];
+        String path;
 
-        // Get the path to the file that is given as input
-        String path = c20170808047.class.getResource
-        (fileName).getPath();
+        // If the user gives arguments, the program will read the file, otherwise it will read the file from the console.
+        if (args.length > 0) {
+            String fileName = args[0];
+            path = c20170808047.class.getResource
+            (fileName).getPath();
+        } else {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            System.out.print("Please enter the absolute path of the file: ");
+            path = reader.readLine();
+        }
 
         // Open the input file
         BufferedReader reader = new BufferedReader(new FileReader(path));
@@ -78,8 +86,10 @@ public class c20170808047 {
                 .sorted(Map.Entry.comparingByKey())
                 .forEachOrdered(x -> sortedData.put(x.getKey(), x.getValue()));
 
-        System.out.println("\nTable:");
-        System.out.println("Current " + "\t\t\t" + " PID " + "\t\t\t" + " Tuple " + "\t\t\t" + " Return ");
+        // If desired, print the table that we drew in class by uncommenting these lines of code. Also inside the runProcesses method.
+        //System.out.println("\nTable:");
+        //System.out.println("Current " + "\t\t\t" + " PID " + "\t\t\t" + " Tuple " + "\t\t\t" + " Return ");
+
         runProcesses(sortedData);
     }
 
@@ -118,8 +128,7 @@ public class c20170808047 {
                     totalTerminateTime += data.get(readyQueue.peek()).returnTime;
 
                     // Print the current time, process ID, tuple, and return time
-                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0)
-                            + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
+                    //System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
 
                     // Add running process's cpu burst length to the current time
                     current += data.get(readyQueue.peek()).getCpuBursts().get(0);
@@ -136,7 +145,7 @@ public class c20170808047 {
                     data.get(readyQueue.peek()).returnTime = current + data.get(readyQueue.peek()).getNthBurstsAddition(0);
 
                     // Print the current time, process ID, tuple, and return time
-                    System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
+                    //System.out.println(current + "\t\t\t\t\t  " + readyQueue.peek() + "\t\t\t\t" + "  " + data.get(readyQueue.peek()).getCpuBursts().get(0) + "," + data.get(readyQueue.peek()).getIoBursts().get(0) + "            " + data.get(readyQueue.peek()).returnTime);
 
                 }
 
@@ -174,7 +183,8 @@ public class c20170808047 {
                 idleCount++;
 
                 // Print the current time, IDLE process, tuple, and return time
-                System.out.println(current + "\t\t\t\t\t  " + "IDLE" + "\t\t\t" + "      " + (smallestReturnTime - current) + ",0" + "            " + smallestReturnTime);
+                //System.out.println(current + "\t\t\t\t\t  " + "IDLE" + "\t\t\t" + "      " + (smallestReturnTime - current) + ",0" + "            " + smallestReturnTime);
+
                 // Set the current time to the smallest return time
                 current = smallestReturnTime;
             }
